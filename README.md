@@ -15,6 +15,7 @@ O eixo Y do joystick controla o brilho do LED azul.
 O display OLED exibe um quadrado que se move conforme o joystick.
 
 🛠️ Componentes Necessários
+
 Raspberry Pi Pico W
 
 Joystick analógico com botão
@@ -29,17 +30,20 @@ Jumpers e protoboard
 
 🏗️ Ligações
 Componente	Pino Raspberry Pi Pico W
-LED Vermelho	GP13
-LED Azul	GP12
-LED Verde	GP11
-Joystick X	GP27 (ADC1)
-Joystick Y	GP26 (ADC0)
-Botão Joystick	GP22
-Botão A	GP5
-Botão B	GP6
-Display SDA	GP14
-Display SCL	GP15
+*LED Vermelho	GP13
+*LED Azul	GP12
+*LED Verde	GP11
+*Joystick X	GP27 (ADC1)
+*Joystick Y	GP26 (ADC0)
+*Botão Joystick	GP22
+*Botão A	GP5
+*Botão B	GP6
+*Display SDA	GP14
+*Display SCL	GP15
+
+
 📦 Bibliotecas Necessárias
+
 Antes de compilar o código, instale as seguintes bibliotecas:
 
 Pico SDK (para desenvolvimento no Raspberry Pi Pico)
