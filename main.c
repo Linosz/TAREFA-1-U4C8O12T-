@@ -12,6 +12,7 @@
 #define JOYSTICK_Y 26
 #define BUTTON_JOYSTICK 22
 #define BUTTON_A 5
+#define BUTTON_B 6 // Definição do botão B na GPIO 6
 #define I2C_SDA 14
 #define I2C_SCL 15
 #define DEADZONE 100 // Faixa de tolerância ao redor do valor central
@@ -19,10 +20,12 @@
 static volatile bool led_state = false;
 static volatile bool leds_enabled = true;
 static volatile int border_style = 0;
+static volatile bool show_squares = false; // Flag para mostrar quadrados
 
 // Adicionando flags para debounce
 static volatile bool debounce_joystick = false;
 static volatile bool debounce_button_A = false;
+static volatile bool debounce_button_B = false; // Adicionando debounce para o botão B
 
 void debounce(uint gpio) {
     sleep_ms(50); 
@@ -34,7 +37,7 @@ void debounce(uint gpio) {
     sleep_ms(50);
 }
 
-// Callback único para os dois botões
+// Callback único para os botões
 void gpio_callback(uint gpio, uint32_t events) {
     if (gpio == BUTTON_JOYSTICK && !debounce_joystick) {
         debounce_joystick = true;
@@ -51,6 +54,11 @@ void gpio_callback(uint gpio, uint32_t events) {
             pwm_set_gpio_level(LED_BLUE, 0);
         }
         printf("Botão A pressionado, LEDs PWM %s\n", leds_enabled ? "ativados" : "desativados");
+    } 
+    else if (gpio == BUTTON_B && !debounce_button_B) {
+        debounce_button_B = true;
+        show_squares = !show_squares; // Alterna a exibição dos quadrados
+        printf("Botão B pressionado, mostrar quadrados: %d\n", show_squares);
     }
 }
 
@@ -84,10 +92,12 @@ int main() {
 
     setup_gpio(BUTTON_JOYSTICK, true, true);
     setup_gpio(BUTTON_A, true, true);
+    setup_gpio(BUTTON_B, true, true); // Configuração do botão B
     
-    // Usa um único callback para ambos os botões
+    // Usa um único callback para todos os botões
     gpio_set_irq_enabled_with_callback(BUTTON_JOYSTICK, GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+    gpio_set_irq_enabled_with_callback(BUTTON_B, GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
 
     i2c_init(i2c1, 400 * 1000);
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
@@ -107,6 +117,10 @@ int main() {
         if (debounce_button_A && gpio_get(BUTTON_A)) {
             debounce(BUTTON_A);
             debounce_button_A = false;
+        }
+        if (debounce_button_B && gpio_get(BUTTON_B)) {
+            debounce(BUTTON_B);
+            debounce_button_B = false;
         }
 
         adc_select_input(1);
@@ -136,6 +150,15 @@ int main() {
         // Ativa a borda quando o botão do joystick for pressionado
         if (border_style == 1) {
             ssd1306_rect(&disp, 0, 0, 128, 64, true, false);
+        }
+
+        // Desenha quadrados espalhados pelo display quando o botão B for pressionado
+        if (show_squares) {
+            for (uint8_t i = 10; i < 120; i += 20) {
+                for (uint8_t j = 10; j < 60; j += 20) {
+                    ssd1306_rect(&disp, j, i, 5, 5, true, true);
+                }
+            }
         }
 
         ssd1306_send_data(&disp);
